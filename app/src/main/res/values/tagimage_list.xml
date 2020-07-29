@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="tag_array">
+        <item>@drawable/ic_tag_blank</item>
+        <item>@drawable/ic_tag_red</item>
+        <item>@drawable/ic_tag_orange</item>
+        <item>@drawable/ic_tag_yellow</item>
+        <item>@drawable/ic_tag_green</item>
+        <item>@drawable/ic_tag_blue</item>
+        <item>@drawable/ic_tag_purple</item>
+        <item>@drawable/ic_tag_gray</item>
+    </integer-array>
+
+</resources>
