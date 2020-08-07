@@ -14,10 +14,7 @@ public class TagInfo extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        String query = "CREATE TABLE tag( " +
-                "tSeqno INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "tName TEXT " +
-                ");";
+        String query = "CREATE TABLE tag(tSeqno INTEGER PRIMARY KEY AUTOINCREMENT, tName TEXT );";
 
         sqLiteDatabase.execSQL(query);
     }

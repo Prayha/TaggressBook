@@ -24,7 +24,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.androidlec.addressbook.CS.CSNetworkTask;
 import com.androidlec.addressbook.CS.TagOptionDialog;
 import com.androidlec.addressbook.R;
 import com.androidlec.addressbook.SH_adapter.AddressListAdapter;
@@ -42,7 +41,8 @@ import java.util.ArrayList;
  *      2020 - 08 - 06 목요일 작성
  *      onCreate 에서 기본 설정후
  *      Spinner_List() 로 이동한다. Spinner_List() 에서 먼저 SQLite 에서 TagList 를 불러와서 적용시킨다.
- *      connectGetData() 로 이동하여 ListView 에 넣어줄 데이터를 SQLite 에서 가져온다. *
+ *      connectGetData() 로 이동하여 ListView 에 넣어줄 데이터를 SQLite 에서 가져온다.
+ *      connectGetData 에 read 면 select 문이 write 면 데이터를 삽입, 수정, 삭제 등등 가능하게 타입을 정해놧다.
  *
  * -------------------------------------------------------------------------------------------------
  */
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private int spinnerPosition;
 
     // 리스트뷰
-    private ArrayList<Address> data;
+    private static ArrayList<Address> data;
     private AddressListAdapter adapter;
     private ListView listView;
     private TextView tv_listFooter;
@@ -74,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
     // 뒤로가기 버튼
     private long backPressedTime = 0;
+
+    // SQLite
+    private String QUERY = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -186,10 +189,12 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
                     spinnerPosition = 0;
+                    QUERY = "SELECT aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag FROM address;";
                 } else {
                     spinnerPosition = position;
+                    QUERY = "SELECT aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag FROM address WHERE aTag LIKE '%" + spinnerPosition + "%';";
                 }
-                connectGetData();
+                connectGetData("read");
             }
 
             @Override
@@ -204,53 +209,101 @@ public class MainActivity extends AppCompatActivity {
         try {
             // SQLite 에 접속하여 Spinner Name 불러오기
             TagInfo tagInfo = new TagInfo(MainActivity.this, "tag", null, 1);
+
             SQLiteDatabase DB = tagInfo.getReadableDatabase();
-            String query = "SELECT tName FROM tag;";
+
+            String query = "SELECT COUNT(tSeqno) FROM tag;";
             Cursor cursor = DB.rawQuery(query, null);
 
-            while (cursor.moveToNext()) {
-                String tName = cursor.getString(0);
-                tNames.add(tName);
+            int count = 0;
+            if (cursor.moveToNext()) {
+                count = cursor.getInt(0);
+            }
+
+            // tag 테이블에 데이터가 없으면 추가하라
+            if (count == 0) {
+                String[] tags = getResources().getStringArray(R.array.maintaglist);
+                DB = tagInfo.getWritableDatabase();
+                for (int i = 1 ; i < tags.length ; i++) {
+                    query = "INSERT INTO tag (tName) VALUES('" + tags[i] + "')";
+                    DB.execSQL(query);
+                }
+            } else {
+                // 있으면 불러와라
+                query = "SELECT tName FROM tag;";
+                cursor = DB.rawQuery(query, null);
+
+                while (cursor.moveToNext()) {
+                    String tName = cursor.getString(0);
+                    tNames.add(tName);
+                }
             }
 
             // Spinner 에 DB 저장된 이름으로 바꿔주기
             for (int i = 1 ; i < spinnerNames.length ; i++) {
                 spinnerNames[i] = tNames.get(i - 1);
             }
+
+            tagInfo.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
     } // 태그 리스트 불러오기
 
-    private void connectGetData() {
+    private void connectGetData(String type) {
         try {
-            // SQLite 에서 데이터 불러오기
+            // SQLite 초기화
             AddressInfo addressInfo = new AddressInfo(MainActivity.this, "address", null, 1);
-            SQLiteDatabase DB = addressInfo.getReadableDatabase();
-            String query = "SELECT aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag FROM address;";
-            Cursor cursor = DB.rawQuery(query, null);
-
-            while(cursor.moveToNext()) {
-                int aSeqno = cursor.getInt(0);
-                String aName = cursor.getString(1);
-                String aImage = cursor.getString(2);
-                String aPhone = cursor.getString(3);
-                String aEmail = cursor.getString(4);
-                String aMemo = cursor.getString(5);
-                String aTag = cursor.getString(6);
-
-                data.add(new Address(aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag));
+            // SQLite 에서 데이터 불러오기
+            SQLiteDatabase DB = null;
+            if (type.equals("write")) {
+                DB = addressInfo.getWritableDatabase();
+            } else {
+                DB = addressInfo.getReadableDatabase();
             }
 
-            if (data.size() == 0) {
+            String query = "SELECT COUNT(aSeqno) FROM address;";
+            Cursor cursor = DB.rawQuery(query, null);
+
+            int count = 0;
+            if (cursor.moveToNext()) {
+                count = cursor.getInt(0);
+            }
+
+            if (count == 0) {
                 tv_noList.setVisibility(View.VISIBLE);
                 listView.setVisibility(View.GONE);
             } else {
                 tv_noList.setVisibility(View.GONE);
                 listView.setVisibility(View.VISIBLE);
+
+                // data 초기화
+                data.clear();
+
+                // ListView 에 보여줄 데이터 가져오기
+                try {
+                    cursor = DB.rawQuery(QUERY, null);
+
+                    while(cursor.moveToNext()) {
+                        int aSeqno = cursor.getInt(0);
+                        String aName = cursor.getString(1);
+                        String aImage = cursor.getString(2);
+                        String aPhone = cursor.getString(3);
+                        String aEmail = cursor.getString(4);
+                        String aMemo = cursor.getString(5);
+                        String aTag = cursor.getString(6);
+
+                        data.add(new Address(aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } // ------------------------
+
                 tv_listFooter.setText(data.size() + "개의 연락처");
                 adapter = new AddressListAdapter(MainActivity.this, R.layout.address_list_layout, data);
                 listView.setAdapter(adapter);
+
+                addressInfo.close();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -259,13 +312,17 @@ public class MainActivity extends AppCompatActivity {
     }  // connectGetData
 
     private void deleteFromDB(int seq) {
-        String urlAddr = "http://192.168.0.79:8080/test/csDeleteAddressBook.jsp?";
-
-        urlAddr = urlAddr + "seq=" + seq;
-
         try {
-            CSNetworkTask csNetworkTask = new CSNetworkTask(MainActivity.this, urlAddr);
-            csNetworkTask.execute().get(); // doInBackground 의 리턴값
+            // SQLite 초기화
+            AddressInfo addressInfo = new AddressInfo(MainActivity.this, "address", null, 1);
+            // SQLite 에서 데이터 불러오기
+            SQLiteDatabase DB = addressInfo.getWritableDatabase();
+
+            String query = "DELETE FROM address WHERE aSeqno = " + data.get(seq).getAseqno() + ";";
+            DB.execSQL(query);
+
+            addressInfo.close();
+
             onResume();
         } catch (Exception e) {
             e.printStackTrace();
@@ -276,11 +333,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public boolean onQueryTextSubmit(String query) {
             if (spinnerPosition == 0) {
-                //urlAddr = "http://" + centIP + ":8080/test/address_list_search.jsp?userid=" + StaticData.USER_ID + "&search=" + query;
+                QUERY = "SELECT aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag FROM address " +
+                        "WHERE (aName LIKE '%" + query + "%' OR aPhone LIKE '%" + query + "%' OR aPhone LIKE '%" + query + "%' OR aPhone LIKE '%" + query + "%' );";
             } else {
-                //urlAddr = "http://192.168.0.79:8080/test/csAddress_list_search.jsp?userid=" + StaticData.USER_ID + "&search=" + query + "&aTag=" + spinnerPosition;
+                QUERY = "SELECT aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag FROM address " +
+                        "WHERE (aName LIKE '%" + query + "%' OR aPhone LIKE '%" + query + "%' OR aPhone LIKE '%" + query + "%' OR aPhone LIKE '%" + query + "%' ) " +
+                        "AND aTag LIKE '%" + spinnerPosition + "%';";
             }
-            connectGetData();
+            connectGetData("write");
             return false;
         }
 
@@ -291,6 +351,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // 플로팅 버튼 이벤트
     FloatingActionButton.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -299,6 +360,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // ListView 버튼 이벤트
     ListView.OnItemClickListener lvOnItemClickListener = new AdapterView.OnItemClickListener() {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -313,6 +375,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // ListView 버튼 길게 이벤트
     ListView.OnItemLongClickListener itemLongClickListener = new AdapterView.OnItemLongClickListener() {
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {

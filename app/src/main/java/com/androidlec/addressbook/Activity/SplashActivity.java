@@ -8,6 +8,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.androidlec.addressbook.R;
 
+/* -------------------------------------------------------------------------------------------------
+ *
+ *
+ *
+ * -------------------------------------------------------------------------------------------------
+ */
+
 public class SplashActivity extends AppCompatActivity {
 
     @Override

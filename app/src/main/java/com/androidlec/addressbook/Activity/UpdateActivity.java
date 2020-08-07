@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -23,12 +25,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.androidlec.addressbook.CS.CSNetworkTask;
-import com.androidlec.addressbook.CS.CSUpdateNetworkTask;
 import com.androidlec.addressbook.CS.Permission;
-import com.androidlec.addressbook.JHJ_FTP.UpdateConnectFTP;
 import com.androidlec.addressbook.R;
 import com.androidlec.addressbook.SH_dto.Address;
+import com.androidlec.addressbook.SQLite.AddressInfo;
 import com.androidlec.addressbook.StaticData;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -179,14 +179,31 @@ public class UpdateActivity extends AppCompatActivity {
     } // 이미지 보이기
 
     private void getData(String seq) {
-        String urlAddr = "http://192.168.0.79:8080/test/csGetAddressBook.jsp?";
-
-        urlAddr = urlAddr + "seq=" + seq;
-
         try {
-            CSUpdateNetworkTask csNetworkTask = new CSUpdateNetworkTask(UpdateActivity.this, urlAddr);
-            Address address = csNetworkTask.execute().get(); // doInBackground 의 리턴값
-            inputData(address);
+            // SQLite 초기화
+            AddressInfo addressInfo = new AddressInfo(UpdateActivity.this, "address", null, 1);
+            // SQLite 에서 데이터 불러오기
+            SQLiteDatabase DB = addressInfo.getWritableDatabase();
+
+            Address data = null;
+            String QUERY = "SELECT aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag FROM address WHERE aSeqno =" + seq + ";";
+            Cursor cursor = DB.rawQuery(QUERY, null);
+
+            if(cursor.moveToNext()) {
+                int aSeqno = cursor.getInt(0);
+                String aName = cursor.getString(1);
+                String aImage = cursor.getString(2);
+                String aPhone = cursor.getString(3);
+                String aEmail = cursor.getString(4);
+                String aMemo = cursor.getString(5);
+                String aTag = cursor.getString(6);
+
+                data = new Address(aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag);
+            }
+
+            inputData(data);
+
+            addressInfo.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -200,6 +217,7 @@ public class UpdateActivity extends AppCompatActivity {
         et_email.setText(address.getAemail());
         et_comment.setText(address.getAmemo());
 
+        // 지워야할것
         String url = StaticData.BASE_URL + address.getAimage();
         mImageUrl = address.getAimage();
 
@@ -247,11 +265,14 @@ public class UpdateActivity extends AppCompatActivity {
             } else if (TextUtils.isEmpty(phone)) {
                 Toast.makeText(this, "전화번호를 입력해 주세요.", Toast.LENGTH_SHORT).show();
             } else if (image_uri == null) {
+                // UPDATE METHOD 실행
                 updateToDB(UpdateActivity.this, mImageUrl);
             } else {
                 try {
+                    /*
                     UpdateConnectFTP updateConnectFTP = new UpdateConnectFTP(UpdateActivity.this, "192.168.0.82", "host", "qwer1234", 25, image_uri);
                     updateConnectFTP.execute();
+                    */
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -281,13 +302,20 @@ public class UpdateActivity extends AppCompatActivity {
     } // 태그 리스트
 
     public static void updateToDB(Context mContext, String fileName) {
-        String urlAddr = "http://192.168.0.79:8080/test/csUpdateAddressBook.jsp?";
-
-        urlAddr = urlAddr + "name=" + name + "&phone=" + phone + "&email=" + email + "&comment=" + comment + "&fileName=" + fileName + "&tags=" + tagListString + "&seq=" + seq;
-
         try {
-            CSNetworkTask csNetworkTask = new CSNetworkTask(mContext, urlAddr);
-            csNetworkTask.execute(); // doInBackground 의 리턴값
+            // SQLite 초기화
+            AddressInfo addressInfo = new AddressInfo(mContext, "address", null, 1);
+            // SQLite 에서 데이터 불러오기
+            SQLiteDatabase DB = addressInfo.getWritableDatabase();
+
+            String QUERY = "UPDATE address " +
+                    "SET aName = '" + name + "', aImage = '" + fileName + "', aPhone = '" + phone + "', " +
+                    "aEmail = '" + email + "', aMemo = '" + comment + "', aTag = '" + tagListString + "'" +
+                    "WHERE aSeqno = " + seq + ";";
+            DB.execSQL(QUERY);
+
+            addressInfo.close();
+
             ((Activity) mContext).finish();
         } catch (Exception e) {
             e.printStackTrace();
@@ -338,6 +366,7 @@ public class UpdateActivity extends AppCompatActivity {
         startActivityForResult(galleryIntent, IMAGE_PICK_GALLERY_CODE);
     } // 갤러리에서 이미지선택
 
+    // 버튼 이벤트
     TextView.OnClickListener onClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {

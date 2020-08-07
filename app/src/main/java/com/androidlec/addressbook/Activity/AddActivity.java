@@ -24,17 +24,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.androidlec.addressbook.CS.CSNetworkTask;
 import com.androidlec.addressbook.CS.Permission;
-import com.androidlec.addressbook.JHJ_FTP.AddConnectFTP;
 import com.androidlec.addressbook.R;
 import com.androidlec.addressbook.SQLite.AddressInfo;
-import com.androidlec.addressbook.StaticData;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
+
+/* -------------------------------------------------------------------------------------------------
+ *
+ *      2020 - 08 - 07 금요일 작성
+ *      onCreate 에서 이벤트 설정 후 기본 컴포넌트 초기화하러 init()으로 이동한다.
+ *
+ *
+ * -------------------------------------------------------------------------------------------------
+ */
 
 public class AddActivity extends AppCompatActivity {
 
