@@ -68,7 +68,7 @@ public class TagOptionDialog extends AppCompatActivity {
     } // 초기화
 
     private void onTagList() {
-        urlAddr = StaticData.DB_URL + "tagList.jsp?";
+        urlAddr = "http://192.168.0.178:8080/Test/tagList.jsp?";
         urlAddr = urlAddr + "id=" + StaticData.USER_ID;
 
         // 태그 리스트 불러오기.
@@ -99,7 +99,7 @@ public class TagOptionDialog extends AppCompatActivity {
         String tag6 = et_purple.getText().toString();
         String tag7 = et_gray.getText().toString();
 
-        urlAddr = StaticData.DB_URL + "tagChange.jsp?";
+        urlAddr = "http://192.168.0.178:8080/Test/tagChange.jsp?";
         urlAddr = urlAddr + "id=" + StaticData.USER_ID + "&tag1=" + tag1 + "&tag2=" + tag2 + "&tag3=" + tag3 + "&tag4=" + tag4 + "&tag5=" + tag5 + "&tag6=" + tag6 + "&tag7=" + tag7;
 
         // 태그명 바꾸기.

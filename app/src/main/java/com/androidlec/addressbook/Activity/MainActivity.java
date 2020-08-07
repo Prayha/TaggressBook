@@ -3,9 +3,10 @@ package com.androidlec.addressbook.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -25,17 +26,26 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.androidlec.addressbook.CS.CSNetworkTask;
 import com.androidlec.addressbook.CS.TagOptionDialog;
-import com.androidlec.addressbook.LJH.LJH_SettingActivity;
-import com.androidlec.addressbook.LJH.LJH_TagNetwork;
 import com.androidlec.addressbook.R;
 import com.androidlec.addressbook.SH_adapter.AddressListAdapter;
 import com.androidlec.addressbook.SH_adapter.CustomSpinnerAdapter;
 import com.androidlec.addressbook.SH_dto.Address;
-import com.androidlec.addressbook.SH_network.NetworkTask;
+import com.androidlec.addressbook.SQLite.AddressInfo;
+import com.androidlec.addressbook.SQLite.TagInfo;
 import com.androidlec.addressbook.StaticData;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+
+/* -------------------------------------------------------------------------------------------------
+ *
+ *      2020 - 08 - 06 목요일 작성
+ *      onCreate 에서 기본 설정후
+ *      Spinner_List() 로 이동한다. Spinner_List() 에서 먼저 SQLite 에서 TagList 를 불러와서 적용시킨다.
+ *      connectGetData() 로 이동하여 ListView 에 넣어줄 데이터를 SQLite 에서 가져온다. *
+ *
+ * -------------------------------------------------------------------------------------------------
+ */
 
 public class MainActivity extends AppCompatActivity {
 
@@ -58,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
     private AddressListAdapter adapter;
     private ListView listView;
     private TextView tv_listFooter;
-
-    String urlAddr;
 
     // 플로팅버튼
     private FloatingActionButton fladdBtn;
@@ -118,15 +126,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menu_optionTag:
                 startActivity(new Intent(MainActivity.this, TagOptionDialog.class));
                 break;
-            case R.id.menu_setting:
-                startActivity(new Intent(MainActivity.this, LJH_SettingActivity.class));
-                break;
-            case R.id.menu_logout:
-                StaticData.USER_ID = "";
-                removeAutoLogin();
-                startActivity(new Intent(MainActivity.this, LoginActivity.class));
-                finish();
-                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -146,6 +145,13 @@ public class MainActivity extends AppCompatActivity {
         }
     } // 뒤로가기
 
+    /* --------------------------------------------------------------------------------------------
+     *
+     *      MainActivity 메소드 시작
+     *
+     * --------------------------------------------------------------------------------------------
+     */
+
     private void init() {
         // xml 초기화
         spinner_tags = findViewById(R.id.main_sp_taglist);
@@ -164,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
 
         actionBar = getSupportActionBar();
         data = new ArrayList<>();
+
     } // 초기화
 
     private void Spinner_List() {
@@ -178,10 +185,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (position == 0) {
-                    urlAddr = StaticData.DB_URL + "address_list_select.jsp?userid=" + StaticData.USER_ID;
                     spinnerPosition = 0;
                 } else {
-                    urlAddr = StaticData.DB_URL + "address_list_selectedspinner.jsp?userid=" + StaticData.USER_ID + "&aTag=" + position;
                     spinnerPosition = position;
                 }
                 connectGetData();
@@ -194,11 +199,48 @@ public class MainActivity extends AppCompatActivity {
         });
     } // 스피너 리스트
 
+    private void onTagList() {
+        tNames = new ArrayList<>();
+        try {
+            // SQLite 에 접속하여 Spinner Name 불러오기
+            TagInfo tagInfo = new TagInfo(MainActivity.this, "tag", null, 1);
+            SQLiteDatabase DB = tagInfo.getReadableDatabase();
+            String query = "SELECT tName FROM tag;";
+            Cursor cursor = DB.rawQuery(query, null);
+
+            while (cursor.moveToNext()) {
+                String tName = cursor.getString(0);
+                tNames.add(tName);
+            }
+
+            // Spinner 에 DB 저장된 이름으로 바꿔주기
+            for (int i = 1 ; i < spinnerNames.length ; i++) {
+                spinnerNames[i] = tNames.get(i - 1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    } // 태그 리스트 불러오기
+
     private void connectGetData() {
         try {
-            NetworkTask networkTask = new NetworkTask(MainActivity.this, urlAddr);
-            Object obj = networkTask.execute().get();
-            data = (ArrayList<Address>) obj;
+            // SQLite 에서 데이터 불러오기
+            AddressInfo addressInfo = new AddressInfo(MainActivity.this, "address", null, 1);
+            SQLiteDatabase DB = addressInfo.getReadableDatabase();
+            String query = "SELECT aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag FROM address;";
+            Cursor cursor = DB.rawQuery(query, null);
+
+            while(cursor.moveToNext()) {
+                int aSeqno = cursor.getInt(0);
+                String aName = cursor.getString(1);
+                String aImage = cursor.getString(2);
+                String aPhone = cursor.getString(3);
+                String aEmail = cursor.getString(4);
+                String aMemo = cursor.getString(5);
+                String aTag = cursor.getString(6);
+
+                data.add(new Address(aSeqno, aName, aImage, aPhone, aEmail, aMemo, aTag));
+            }
 
             if (data.size() == 0) {
                 tv_noList.setVisibility(View.VISIBLE);
@@ -216,30 +258,8 @@ public class MainActivity extends AppCompatActivity {
 
     }  // connectGetData
 
-    private void onTagList() {
-        urlAddr = StaticData.DB_URL + "tagList.jsp?";
-        urlAddr = urlAddr + "id=" + StaticData.USER_ID;
-
-        try {
-            LJH_TagNetwork tagListNetworkTask = new LJH_TagNetwork(MainActivity.this, urlAddr);
-            Object obj = tagListNetworkTask.execute().get();
-            tNames = new ArrayList<>();
-            tNames = (ArrayList<String>) obj; // cast.
-
-            spinnerNames[1] = tNames.get(0);
-            spinnerNames[2] = tNames.get(1);
-            spinnerNames[3] = tNames.get(2);
-            spinnerNames[4] = tNames.get(3);
-            spinnerNames[5] = tNames.get(4);
-            spinnerNames[6] = tNames.get(5);
-            spinnerNames[7] = tNames.get(6);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    } // 태그 리스트 불러오기
-
     private void deleteFromDB(int seq) {
-        String urlAddr = StaticData.DB_URL + "csDeleteAddressBook.jsp?";
+        String urlAddr = "http://192.168.0.79:8080/test/csDeleteAddressBook.jsp?";
 
         urlAddr = urlAddr + "seq=" + seq;
 
@@ -252,22 +272,13 @@ public class MainActivity extends AppCompatActivity {
         }
     } // 연락처 삭제
 
-    private void removeAutoLogin() {
-        SharedPreferences sharedPreferences = getSharedPreferences("sFile", MODE_PRIVATE);
-
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("autoLogin", false); // key, value를 이용하여 저장하는 형태
-
-        editor.apply();
-    } // 자동로그인 데이터 지우기
-
     SearchView.OnQueryTextListener onQueryTextListener = new SearchView.OnQueryTextListener() {
         @Override
         public boolean onQueryTextSubmit(String query) {
             if (spinnerPosition == 0) {
-                urlAddr = StaticData.DB_URL + "address_list_search.jsp?userid=" + StaticData.USER_ID + "&search=" + query;
+                //urlAddr = "http://" + centIP + ":8080/test/address_list_search.jsp?userid=" + StaticData.USER_ID + "&search=" + query;
             } else {
-                urlAddr = StaticData.DB_URL + "csAddress_list_search.jsp?userid=" + StaticData.USER_ID + "&search=" + query + "&aTag=" + spinnerPosition;
+                //urlAddr = "http://192.168.0.79:8080/test/csAddress_list_search.jsp?userid=" + StaticData.USER_ID + "&search=" + query + "&aTag=" + spinnerPosition;
             }
             connectGetData();
             return false;

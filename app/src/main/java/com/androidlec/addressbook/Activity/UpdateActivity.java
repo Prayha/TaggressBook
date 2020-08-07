@@ -179,7 +179,7 @@ public class UpdateActivity extends AppCompatActivity {
     } // 이미지 보이기
 
     private void getData(String seq) {
-        String urlAddr = StaticData.DB_URL + "csGetAddressBook.jsp?";
+        String urlAddr = "http://192.168.0.79:8080/test/csGetAddressBook.jsp?";
 
         urlAddr = urlAddr + "seq=" + seq;
 
@@ -250,7 +250,7 @@ public class UpdateActivity extends AppCompatActivity {
                 updateToDB(UpdateActivity.this, mImageUrl);
             } else {
                 try {
-                    UpdateConnectFTP updateConnectFTP = new UpdateConnectFTP(UpdateActivity.this, StaticData.DB_URL, "host", "qwer1234", 25, image_uri);
+                    UpdateConnectFTP updateConnectFTP = new UpdateConnectFTP(UpdateActivity.this, "192.168.0.82", "host", "qwer1234", 25, image_uri);
                     updateConnectFTP.execute();
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -281,7 +281,7 @@ public class UpdateActivity extends AppCompatActivity {
     } // 태그 리스트
 
     public static void updateToDB(Context mContext, String fileName) {
-        String urlAddr = StaticData.DB_URL + "csUpdateAddressBook.jsp?";
+        String urlAddr = "http://192.168.0.79:8080/test/csUpdateAddressBook.jsp?";
 
         urlAddr = urlAddr + "name=" + name + "&phone=" + phone + "&email=" + email + "&comment=" + comment + "&fileName=" + fileName + "&tags=" + tagListString + "&seq=" + seq;
 

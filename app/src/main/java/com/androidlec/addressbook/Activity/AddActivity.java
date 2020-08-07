@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -27,6 +28,7 @@ import com.androidlec.addressbook.CS.CSNetworkTask;
 import com.androidlec.addressbook.CS.Permission;
 import com.androidlec.addressbook.JHJ_FTP.AddConnectFTP;
 import com.androidlec.addressbook.R;
+import com.androidlec.addressbook.SQLite.AddressInfo;
 import com.androidlec.addressbook.StaticData;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -36,7 +38,7 @@ import java.util.ArrayList;
 
 public class AddActivity extends AppCompatActivity {
 
-    private static String name, phone, email, comment, tagListString;
+    private static String name, imageName ,phone ,email ,comment ,tagListString;
     // xml
     private TextView tv_bt_register, tv_bt_cancel;
     private ImageView ivAddImage;
@@ -49,8 +51,9 @@ public class AddActivity extends AppCompatActivity {
     // 카메라, 이미지
     private static final int IMAGE_PICK_CAMERA_CODE = 101;
     private static final int IMAGE_PICK_GALLERY_CODE = 102;
-    private Uri image_uri;
     private Permission permission;
+
+    private static Uri image_uri;
 
     // 태그
     private int[] iv_tags = {R.id.add_iv_tagRed, R.id.add_iv_tagOrange, R.id.add_iv_tagYellow, R.id.add_iv_tagGreen, R.id.add_iv_tagBlue, R.id.add_iv_tagPurple, R.id.add_iv_tagGray};
@@ -184,15 +187,9 @@ public class AddActivity extends AppCompatActivity {
                 Toast.makeText(this, "이름을 입력해 주세요.", Toast.LENGTH_SHORT).show();
             } else if (TextUtils.isEmpty(phone)) {
                 Toast.makeText(this, "전화번호를 입력해 주세요.", Toast.LENGTH_SHORT).show();
-            } else if (image_uri == null) {
-                uploadToDB(AddActivity.this, "");
             } else {
-                try {
-                    AddConnectFTP addConnectFTP = new AddConnectFTP(AddActivity.this, StaticData.DB_URL, "host", "qwer1234", 25, image_uri);
-                    addConnectFTP.execute();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                // 데이터 저장
+                uploadToDB(AddActivity.this, "");
             }
         }
     } // 데이터 입력 액션
@@ -219,19 +216,31 @@ public class AddActivity extends AppCompatActivity {
     } // 태그 리스트
 
     public static void uploadToDB(Context mContext, String fileName) {
-        String urlAddr = StaticData.DB_URL + "csAddAddressBook.jsp?";
-
-        urlAddr = urlAddr + "name=" + name + "&phone=" + phone + "&email=" + email + "&comment=" + comment + "&fileName=" + fileName + "&tags=" + tagListString + "&userId=" + StaticData.USER_ID + "&userSeq=" + StaticData.USER_SEQ;
-
         try {
-            CSNetworkTask csNetworkTask = new CSNetworkTask(mContext, urlAddr);
-            csNetworkTask.execute(); // doInBackground 의 리턴값
-            Toast.makeText(mContext, name + " 연락처를 추가했습니다.", Toast.LENGTH_SHORT).show();
+            // AddressInfo 데이터 베이스 불러오기
+            AddressInfo addressInfo = new AddressInfo(mContext, "address", null, 1);
+
+            // SQLite 데이터 베이스 객체 생성
+            SQLiteDatabase DB = addressInfo.getWritableDatabase();
+
+            // ImageName 지워야함
+            imageName = "123.jpg";
+
+            // 쿼리문
+            String query = "INSERT INTO address (aName, aImage, aPhone, aEmail, aMemo, aTag) " +
+                    "VALUES( '" + name  + "', '" + imageName + "', '" + phone + "', '" + email + "', '" + comment + "', '" + tagListString + "');";
+            // 쿼리문 실행
+            DB.execSQL(query);
+
+            addressInfo.close();
+
             ((Activity) mContext).finish();
         } catch (Exception e) {
             e.printStackTrace();
+            Toast.makeText(mContext, "DB 쓰기에 실패하였습니다.", Toast.LENGTH_LONG).show();
         }
-    } // 데이터베이스에 데이터 입력
+
+    } // SQLite 데이터베이스에 데이터 입력
 
     private void showImagePicDialog() {
         String[] options = {"카메라에서 촬영", "갤러리에서 선택"};
