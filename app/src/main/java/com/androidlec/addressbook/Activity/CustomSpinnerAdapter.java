@@ -1,4 +1,4 @@
-package com.androidlec.addressbook.SH_adapter;
+package com.androidlec.addressbook.Activity;
 
 import android.content.Context;
 import android.content.res.TypedArray;

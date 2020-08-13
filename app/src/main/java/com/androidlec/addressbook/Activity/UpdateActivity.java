@@ -25,9 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.androidlec.addressbook.CS.Permission;
 import com.androidlec.addressbook.R;
-import com.androidlec.addressbook.SH_dto.Address;
 import com.androidlec.addressbook.SQLite.AddressInfo;
 import com.androidlec.addressbook.StaticData;
 import com.bumptech.glide.Glide;

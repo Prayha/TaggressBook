@@ -13,6 +13,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.telephony.PhoneNumberFormattingTextWatcher;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.WindowManager;
@@ -24,7 +25,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.androidlec.addressbook.CS.Permission;
 import com.androidlec.addressbook.R;
 import com.androidlec.addressbook.SQLite.AddressInfo;
 import com.bumptech.glide.Glide;
@@ -133,6 +133,7 @@ public class AddActivity extends AppCompatActivity {
         ivAddImage = findViewById(R.id.iv_addAddress_image);
         et_name = findViewById(R.id.et_addAddress_name);
         et_phone = findViewById(R.id.et_addAddress_phone);
+        et_phone.addTextChangedListener(new PhoneNumberFormattingTextWatcher());
         et_email = findViewById(R.id.et_addAddress_email);
         et_comment = findViewById(R.id.et_addAddress_cmt);
 

@@ -1,4 +1,4 @@
-package com.androidlec.addressbook.SH_dto;
+package com.androidlec.addressbook.Activity;
 
 public class Address {
 
