@@ -1,4 +1,4 @@
-package com.androidlec.addressbook.CS;
+package com.androidlec.addressbook.Activity;
 
 import android.Manifest;
 import android.app.Activity;

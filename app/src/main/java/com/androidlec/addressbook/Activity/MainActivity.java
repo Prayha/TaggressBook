@@ -23,12 +23,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
-import com.androidlec.addressbook.CS.TagOptionDialog;
 import com.androidlec.addressbook.R;
-import com.androidlec.addressbook.SH_adapter.AddressListAdapter;
-import com.androidlec.addressbook.SH_adapter.CustomSpinnerAdapter;
-import com.androidlec.addressbook.SH_dto.Address;
 import com.androidlec.addressbook.SQLite.AddressInfo;
 import com.androidlec.addressbook.SQLite.TagInfo;
 import com.androidlec.addressbook.StaticData;
@@ -68,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
     private AddressListAdapter adapter;
     private ListView listView;
     private TextView tv_listFooter;
+    private RecyclerAdapter recyclerAdapter;
+    private RecyclerView recyclerView;
 
     // 플로팅버튼
     private FloatingActionButton fladdBtn;
@@ -201,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {
 
             }
+
         });
     } // 스피너 리스트
 
