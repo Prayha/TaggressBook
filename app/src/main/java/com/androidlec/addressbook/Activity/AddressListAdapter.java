@@ -1,4 +1,4 @@
-package com.androidlec.addressbook.SH_adapter;
+package com.androidlec.addressbook.Activity;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -9,9 +9,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.androidlec.addressbook.Activity.MainActivity;
 import com.androidlec.addressbook.R;
-import com.androidlec.addressbook.SH_dto.Address;
 import com.androidlec.addressbook.StaticData;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
