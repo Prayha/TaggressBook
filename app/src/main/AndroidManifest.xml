@@ -7,6 +7,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.read_phone_state" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
 
     <application
         android:allowBackup="true"
@@ -16,15 +19,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".Activity.UpdateActivity"></activity>
+        <activity android:name=".Activity.GetContactActivity"></activity>
+        <activity android:name=".Activity.UpdateActivity" />
         <activity
-            android:name=".CS.TagOptionDialog"
+            android:name=".Activity.TagOptionDialog"
             android:theme="@style/Dialog" />
         <activity android:name=".Activity.AddActivity" />
         <activity
             android:name=".Activity.MainActivity"
-            android:theme="@style/MainTheme" >
-        </activity>
+            android:theme="@style/MainTheme"></activity>
         <activity android:name=".Activity.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
