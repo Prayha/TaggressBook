@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="maintaglist">
-        <item>전체보기</item>
-        <item>빨간색</item>
-        <item>주황색</item>
-        <item>노란색</item>
-        <item>초록색</item>
-        <item>파란색</item>
-        <item>보라색</item>
-        <item>회색</item>
+        <item>All</item>
+        <item>RED</item>
+        <item>ORANGE</item>
+        <item>YELLOW</item>
+        <item>GREEN</item>
+        <item>BLUE</item>
+        <item>PURPLE</item>
+        <item>GRAY</item>
     </string-array>
 
     <string-array name="addaddresstaglist">
-        <item>태그없음</item>
-        <item>빨간색</item>
-        <item>주황색</item>
-        <item>노란색</item>
-        <item>초록색</item>
-        <item>파란색</item>
-        <item>보라색</item>
-        <item>회색</item>
+        <item>NoTag</item>
+        <item>RED</item>
+        <item>ORANGE</item>
+        <item>YELLOW</item>
+        <item>GREEN</item>
+        <item>BLUE</item>
+        <item>PURPLE</item>
+        <item>GRAY</item>
     </string-array>
 
 </resources>
