@@ -4,8 +4,8 @@
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
     
-    <color name="colorDanawa">#78C341</color>
-    <color name="colorDanawaDark">#58a321</color>
+    <color name="colorTaddress">#48BAD7</color>
+    <color name="colorTaddressDark">#A4589D</color>
 
     <color name="black">#000</color>
     <color name="white">#fff</color>

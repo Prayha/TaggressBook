@@ -128,6 +128,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menu_optionTag:
                 startActivity(new Intent(MainActivity.this, TagOptionDialog.class));
                 break;
+            case R.id.menu_getConacts:
+                startActivity(new Intent(MainActivity.this, GetContactActivity.class));
             default:
                 return super.onOptionsItemSelected(item);
         }
